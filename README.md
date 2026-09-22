@@ -8,9 +8,10 @@ instances of the thing you just complained about.
 
 This skill fixes that. It turns "and so on" into a working instruction.
 
-It ships as a `SKILL.md` for Claude Code, but nothing in it is Claude-specific —
-it's a page of plain Markdown describing a behaviour, and it works in any agent
-that reads instructions from a file. See [Install](#install).
+It ships as a `SKILL.md` because that's a format some agents load by
+themselves, but nothing in it is tied to one of them: it's a page of plain
+Markdown describing a behaviour, and it works in any agent you can give
+standing instructions to. See [Install](#install).
 
 ## What it does
 
@@ -38,58 +39,68 @@ treat zero findings as a legitimate answer.
 
 ## When it fires
 
-On phrases that hand over a pattern instead of a list:
+On any phrase that hands over a pattern instead of a list — you name a couple
+of cases and make the agent responsible for the rest. Some that do it:
 
 `and so on` · `etc` · `same for the rest` · `apply the same principle`
 `do the rest yourself` · `fix 1 and 2, you get the idea` · `and everywhere else too`
 
-Or explicitly, as `/etc`.
+Those are examples, not a closed set, and an agent that only pattern-matches the
+literal strings has already missed the point. Invoking it as `/etc` works too
+where your agent supports that.
 
 ## Install
 
-### Claude Code
+The skill is one page of Markdown with no code, no dependencies and no tool
+calls. Installing it means putting that page where your agent reads standing
+instructions from. Every agent has such a place; only the path and the loading
+rule differ.
 
-Skills live in `~/.claude/skills/<name>/SKILL.md`:
+Two questions get you there.
+
+**1. Does your agent load instruction files on demand, or always?**
+
+- **On demand** — it scans a directory of instruction files and pulls one in
+  when its description matches what you're doing. **Keep the YAML front matter:**
+  the `description` field is what makes the loader fire on "and so on."
+- **Always** — it reads one file (or a whole directory) into context at startup.
+  **Drop the front matter.** When the text is always loaded, the trigger list is
+  dead weight; the four steps are the part that works.
+
+**2. Where does it read from?** Check your agent's own docs for the path. Three
+shapes cover almost everything:
+
+| Shape | Path looks like | Front matter |
+|---|---|---|
+| Skill / command directory, loaded on demand | `<config dir>/skills/<name>/SKILL.md` | keep |
+| One rules file, always loaded | `AGENTS.md` in the repo or home config | drop |
+| Rules directory, always or conditionally loaded | `<rules dir>/etc.md` | keep if the agent parses it, else drop |
+
+If your agent takes no file at all — a web UI, an API system prompt, a "custom
+instructions" box — paste the body in there. Same text, same effect.
+
+`AGENTS.md` is the closest thing to a common denominator: a growing number of
+agents read it, and an agent that documents no path of its own is worth trying
+it on first.
+
+### Two worked examples
+
+A skill directory that loads on demand, Claude Code being one such agent:
 
 ```bash
 git clone https://github.com/vladmoseev/etc-skill.git ~/.claude/skills/etc
 ```
 
-Or without git — grab the one file:
-
-```bash
-mkdir -p ~/.claude/skills/etc && curl -fsSL \
-  https://raw.githubusercontent.com/vladmoseev/etc-skill/main/SKILL.md \
-  -o ~/.claude/skills/etc/SKILL.md
-```
-
-For one project only, use `.claude/skills/etc/` inside the project instead.
-Start a new session and check it's there:
-
-```bash
-test -f ~/.claude/skills/etc/SKILL.md && echo installed
-```
-
-### Codex, Gemini CLI, and other agents that read a rules file
-
-These don't have a skill loader — they read one instructions file at startup
-(`AGENTS.md`, `GEMINI.md`, or whatever the agent calls it). Append the body of
-`SKILL.md`, without the YAML front matter, to that file:
+A single always-loaded rules file, front matter stripped:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vladmoseev/etc-skill/main/SKILL.md \
-  | sed '1,/^---$/d' >> ~/.codex/AGENTS.md
+  | sed '1,/^---$/d' >> AGENTS.md
 ```
 
-The front matter only exists to tell a skill loader when to activate. In a
-rules file the text is always loaded, so the trigger list is redundant — the
-four steps are the part that does the work.
-
-### Cursor, Windsurf, and similar
-
-Drop `SKILL.md` into the project's rules directory (`.cursor/rules/etc.md` and
-its equivalents). Keep or drop the front matter depending on whether that editor
-uses it.
+Swap the path for whatever your agent uses; nothing else changes. Then check the
+install the only way that means anything: make two corrections by hand, say
+"the rest the same way," and see whether you get a rule back or two fixed lines.
 
 ## Other languages
 
@@ -100,7 +111,7 @@ The skill is one Markdown file with no code, so a translation is a full port.
 
 Triggers are language-specific: an agent won't recognise `и так далее` from the
 English file. Install the version matching the language you actually write in —
-same path, just copy that file in place of `SKILL.md`.
+the procedure above is identical, just take that file instead of `SKILL.md`.
 
 Pull requests with more translations are welcome. Keep the four-step structure
 and translate the trigger phrases into ones people really say in that language,
