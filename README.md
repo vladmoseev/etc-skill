@@ -1,12 +1,16 @@
-# etc — a Claude Code skill
+# etc — an agent skill
 
 > "Fix items 1 and 2, then do the rest the same way."
 
-You show an agent two or three corrections as examples. It fixes exactly those
-two or three, reports "done," and hands back a file that still has twenty
+You show a coding agent two or three corrections as examples. It fixes exactly
+those two or three, reports "done," and hands back a file that still has twenty
 instances of the thing you just complained about.
 
 This skill fixes that. It turns "and so on" into a working instruction.
+
+It ships as a `SKILL.md` for Claude Code, but nothing in it is Claude-specific —
+it's a page of plain Markdown describing a behaviour, and it works in any agent
+that reads instructions from a file. See [Install](#install).
 
 ## What it does
 
@@ -43,29 +47,49 @@ Or explicitly, as `/etc`.
 
 ## Install
 
-Claude Code reads skills from `~/.claude/skills/<name>/SKILL.md`.
+### Claude Code
+
+Skills live in `~/.claude/skills/<name>/SKILL.md`:
 
 ```bash
-git clone https://github.com/vladmoseev/claude-skill-etc.git ~/.claude/skills/etc
+git clone https://github.com/vladmoseev/etc-skill.git ~/.claude/skills/etc
 ```
 
-Or without git — download `SKILL.md` and drop it in:
+Or without git — grab the one file:
 
 ```bash
 mkdir -p ~/.claude/skills/etc && curl -fsSL \
-  https://raw.githubusercontent.com/vladmoseev/claude-skill-etc/main/SKILL.md \
+  https://raw.githubusercontent.com/vladmoseev/etc-skill/main/SKILL.md \
   -o ~/.claude/skills/etc/SKILL.md
 ```
 
 For one project only, use `.claude/skills/etc/` inside the project instead.
-
-Restart Claude Code (or start a new session) and check that it's loaded:
+Start a new session and check it's there:
 
 ```bash
 test -f ~/.claude/skills/etc/SKILL.md && echo installed
 ```
 
-Then try it: make two corrections by hand and say "the rest the same way."
+### Codex, Gemini CLI, and other agents that read a rules file
+
+These don't have a skill loader — they read one instructions file at startup
+(`AGENTS.md`, `GEMINI.md`, or whatever the agent calls it). Append the body of
+`SKILL.md`, without the YAML front matter, to that file:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vladmoseev/etc-skill/main/SKILL.md \
+  | sed '1,/^---$/d' >> ~/.codex/AGENTS.md
+```
+
+The front matter only exists to tell a skill loader when to activate. In a
+rules file the text is always loaded, so the trigger list is redundant — the
+four steps are the part that does the work.
+
+### Cursor, Windsurf, and similar
+
+Drop `SKILL.md` into the project's rules directory (`.cursor/rules/etc.md` and
+its equivalents). Keep or drop the front matter depending on whether that editor
+uses it.
 
 ## Other languages
 
@@ -74,9 +98,9 @@ The skill is one Markdown file with no code, so a translation is a full port.
 - **English** — [`SKILL.md`](SKILL.md) (default)
 - **Russian** — [`translations/ru/SKILL.md`](translations/ru/SKILL.md)
 
-Triggers are language-specific: an agent won't recognize `и так далее` from the
+Triggers are language-specific: an agent won't recognise `и так далее` from the
 English file. Install the version matching the language you actually write in —
-same path, just copy that file as `~/.claude/skills/etc/SKILL.md`.
+same path, just copy that file in place of `SKILL.md`.
 
 Pull requests with more translations are welcome. Keep the four-step structure
 and translate the trigger phrases into ones people really say in that language,
@@ -84,9 +108,9 @@ rather than word-for-word.
 
 ## Why it's a skill and not a line in a config
 
-Because the pull toward the wrong behavior is strong. Doing what was named is
+Because the pull toward the wrong behaviour is strong. Doing what was named is
 safe and verifiable; deriving a rule means taking on interpretation and making
-edits nobody asked for by name. An agent optimizing for "did I do what I was
+edits nobody asked for by name. An agent optimising for "did I do what I was
 told" will pick the narrow reading every time. Countering that takes a few
 paragraphs of argument and a concrete procedure — not a reminder.
 
