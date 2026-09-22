@@ -68,10 +68,10 @@ Good: "rule: \<sentence\>. It covered 23 places, all fixed. Three left alone:
   are for.
 - **Check the items you were shown, too.** Sometimes the user fixed them only
   partway, as a sketch — the rule may be broader than their own example.
-- **It applies to what you write, too, not just what you fix.** Documenting an
-  open-ended class by naming three of its members — three supported tools, three
-  file formats, three error cases — is the same failure in output form. The test
-  for membership matters more than the list: state it, and mark examples as
-  examples.
+- **Same thing when you're writing, not fixing.** Some lists can't be finished:
+  there are hundreds of tools, dozens of file formats, any number of error cases.
+  Three examples in place of an explanation lie about the coverage — whoever has
+  the fourth case concludes it was left out. Explain how to tell what fits from
+  what doesn't, and call the examples examples.
 - **Zero findings is a result, not a failure.** Say "besides the ones you
   showed, nothing else falls under the rule," and be done.
